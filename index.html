@@ -194,7 +194,7 @@ a{color:var(--acc);text-decoration:none;}
 .p-para:last-child{margin-bottom:0;}
 
 /* 소제목 */
-.p-subh{font-size:14px;font-weight:700;color:var(--text);margin:18px 0 8px;padding-left:10px;border-left:3px solid var(--acc);}
+.p-subh{font-size:15px;font-weight:700;color:var(--text);margin:20px 0 8px;}
 .p-subh.gsh{border-left-color:var(--gemini);}
 
 /* 인용구 (blockquote) */
@@ -1575,7 +1575,7 @@ async function genPost(idx, force, perspective) {
         '3. 문장 길이: 한 문장은 최대 40자 이내. 길면 반드시 두 문장으로 나눠라.',
         '4. 단락 길이: 한 단락은 최대 3문장. 그 이상이면 줄바꿈으로 단락을 나눠라.',
         '5. 핵심만: 불필요한 수식어·중복 설명 금지. 핵심 정보만 간결하게.',
-        '6. 소제목: 마크다운 기호(** ## ### __ * _ ~~) 절대 금지. # 기호 완전 금지. 소제목은 줄 앞에 아무 기호 없이 텍스트만으로 작성. 소제목 다음 줄에 내용을 작성해라. 소제목 앞뒤로 두 번 줄바꿈.',
+        '6. 소제목: 마크다운 기호(** ## ### __ * _ ~~) 절대 금지. # 기호 완전 금지. 소제목은 기호 없이 텍스트만으로 작성. 소제목 앞뒤로 빈 줄(두 번 줄바꿈). 소제목 바로 다음 줄에 내용 작성. 소제목은 포스팅에서 굵게(BOLD) 표시됨.',
         '7. 인용구: 핵심 포인트 1~2개만 > 로 강조. 남용 금지.',
         '8. 구조: [서론][본론][결론] 단어 body에 절대 금지. 자연스럽게 이어지는 글.',
         '9. 표 활용: 항목·조건·비교·수치 나열은 반드시 마크다운 표(| 항목 | 내용 |)로. 표 앞 1문장 요약 필수.',
@@ -1824,7 +1824,7 @@ function parseBody(body, isG) {
     // ### 또는 ## 소제목 → # 제거 후 볼드 처리
     if (/^#{1,6}\s/.test(line)) {
       var subText = line.replace(/^#{1,6}\s+/, '').trim();
-      html += '<div class="p-subh' + (isG2 ? ' gsh' : '') + '" style="font-weight:700">' + escHtml(subText) + '</div>';
+      html += '<div class="p-subh" style="font-size:15px;font-weight:700;margin:20px 0 8px">' + escHtml(subText) + '</div>';
       i++; continue;
     }
 
@@ -2360,7 +2360,7 @@ function buildHtml(mode) {
       // #/##/### 소제목 → # 제거 후 볼드 네이버 HTML
       if (/^#{1,6}\s/.test(line)) {
         var subT = line.replace(/^#{1,6}\s+/, '').trim();
-        html += '<p style="'+F+'font-weight:700;font-size:16px;margin:16px 0 6px">'+esc(subT)+'</p>';
+        html += '<p style="'+F+'font-weight:700;font-size:16px;margin:20px 0 8px">'+esc(subT)+'</p>';
         i++; continue;
       }
 
