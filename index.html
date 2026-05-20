@@ -1984,7 +1984,7 @@ async function generateImgPromptsFromPost(idx, post) {
     '- 실사 사람·인물·얼굴·손 절대 금지 (no people, no faces, no hands, no human figures)\n' +
     '- 사진 스타일(photorealistic photo) 금지\n' +
     '- 어둡거나 암울한 색감 금지 (no dark, gloomy, depressing tones)\n' +
-    '- 영문 텍스트 금지 (no English text or letters)\n' +
+    '- 텍스트·글자·숫자·라벨 전체 금지 (absolutely no text, no letters, no numbers, no labels, no captions of any kind)\n' +
     '- 추상적·모호한 이미지 금지 — 포스팅 내용을 직접 연상할 수 있어야 함\n\n' +
 
     '[이미지 1 — 대표 썸네일]\n' +
@@ -2000,8 +2000,8 @@ async function generateImgPromptsFromPost(idx, post) {
     '내용 방향: 표·수치·비교(예: 취득세율 비교표→bar chart 그래픽, 권리가액 계산→계산식 다이어그램, 금리 변화→trend graph)를 구체적으로 시각화\n\n' +
 
     '출력 형식 (JSON 배열만):\n' +
-    '[{"num":1,"label":"대표이미지","prompt":"구체적 영문 프롬프트 (flat illustration style, bright colors, no people, no faces, no English text, [포스팅 핵심 오브젝트 묘사])","keyword":"네이버 검색어"},' +
-    '{"num":2,"label":"핵심이미지","prompt":"구체적 영문 프롬프트 (infographic/diagram style, bright colors, no people, no English text, [수치·비교·조건 시각화 묘사])","keyword":"네이버 검색어"}]';
+    '[{"num":1,"label":"대표이미지","prompt":"구체적 영문 프롬프트 (flat illustration style, bright colors, no people, no faces, no text, no letters, no numbers, [포스팅 핵심 오브젝트 묘사])","keyword":"네이버 검색어"},' +
+    '{"num":2,"label":"핵심이미지","prompt":"구체적 영문 프롬프트 (infographic/diagram style, bright colors, no people, no text, no letters, no numbers, [수치·비교·조건 시각화 묘사])","keyword":"네이버 검색어"}]';
 
   try {
     var raw = await callAI(sys, usr, 800);
@@ -2175,7 +2175,7 @@ async function genOneImage(i) {
 async function callGeminiImage(model, prompt) {
   var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + KEY;
   var body = {
-    contents: [{ parts: [{ text: prompt + ', professional illustration, high quality, blog image, Korean text only if any text, no English text' }] }],
+    contents: [{ parts: [{ text: prompt + ', professional illustration, high quality, blog image, no text, no letters, no numbers, no labels, text-free' }] }],
     generationConfig: { responseModalities: ['IMAGE', 'TEXT'] }
   };
   var r = await fetch(url, {
@@ -2200,7 +2200,7 @@ async function callGeminiImage(model, prompt) {
 
 async function callPollinations(prompt) {
   var seed = Math.floor(Math.random() * 99999);
-  var encoded = encodeURIComponent(prompt + ', professional illustration, high quality, 16:9 ratio, Korean text only if any text included, no English letters or words');
+  var encoded = encodeURIComponent(prompt + ', professional illustration, high quality, 16:9 ratio, no text, no letters, no numbers, no labels, purely graphical');
   var url = 'https://image.pollinations.ai/prompt/' + encoded + '?width=1200&height=675&model=flux&nologo=true&seed=' + seed;
   return new Promise(function(resolve, reject) {
     var img = new Image();
