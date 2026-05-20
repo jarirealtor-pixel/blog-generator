@@ -1821,10 +1821,24 @@ function parseBody(body, isG) {
     }
     if (secMatch) { i++; continue; }
 
-    // ### 또는 ## 소제목 → # 제거 후 볼드 처리
+    // ### 소제목 → # 제거 후 볼드 처리
     if (/^#{1,6}\s/.test(line)) {
       var subText = line.replace(/^#{1,6}\s+/, '').trim();
       html += '<div class="p-subh" style="font-size:15px;font-weight:700;margin:20px 0 8px">' + escHtml(subText) + '</div>';
+      i++; continue;
+    }
+
+    // 단독 소제목 줄 감지: 짧고(60자 이하), 마침표로 끝나지 않으며, 다음 줄이 내용인 경우
+    var nextLine = (i + 1 < lines.length) ? lines[i + 1].trim() : '';
+    var prevLine = (i > 0) ? lines[i - 1].trim() : '';
+    var isSubheading = line.length > 0 && line.length <= 60
+      && !line.endsWith('.') && !line.endsWith('다') && !line.endsWith('요')
+      && !line.startsWith('>') && !line.startsWith('|')
+      && !line.startsWith('\x00')
+      && (prevLine === '' || prevLine.startsWith('\x00'))
+      && nextLine !== '';
+    if (isSubheading) {
+      html += '<div class="p-subh" style="font-size:15px;font-weight:700;margin:20px 0 8px">' + escHtml(line) + '</div>';
       i++; continue;
     }
 
@@ -1977,31 +1991,29 @@ async function generateImgPromptsFromPost(idx, post) {
     '아래 블로그 포스팅을 분석하여 2개의 Pollinations AI 영문 이미지 프롬프트를 만드세요.\n\n' +
     '포스팅 제목: ' + title + '\n핵심 내용:\n' + bodySnippet + '\n\n' +
 
-    '[공통 금지 사항 — 반드시 준수]\n' +
-    '- 실사 사람·인물·얼굴·손 절대 금지 (no people, no faces, no hands)\n' +
-    '- 텍스트·글자·숫자·라벨 전체 금지 (no text, no letters, no numbers, no labels)\n' +
-    '- 어둡거나 암울한 색감 금지 (단, 스타일B의 다크 배경은 전문적 분위기이므로 허용)\n\n' +
+    '[이미지 1 — 실사 사진 스타일 (photorealistic)]\n' +
+    '스타일: high-quality photorealistic photography, professional DSLR shot, natural lighting\n' +
+    '금지: 사람·인물·얼굴·손 절대 금지 (no people, no faces, no hands, no human body parts)\n' +
+    '금지: 텍스트·글자·간판 금지 (no text, no letters, no signs)\n' +
+    '허용: 건물 외관, 부동산 오브젝트, 문서·계약서(클로즈업), 열쇠, 동전·지폐(클로즈업), 법원·등기소 건물 외관, 계산기, 책상 위 서류, 아파트 외관 등\n' +
+    '색감: 밝고 자연스러운 색감. 전문적이고 신뢰감 있는 분위기\n' +
+    '구도: 깔끔한 배경, 오브젝트 클로즈업 또는 와이드샷\n' +
+    '포스팅 핵심 오브젝트: 포스팅 내용에서 가장 연상되는 실물 오브젝트 1~2개 선택\n' +
+    '(예: 취득세→집열쇠+계약서, 재건축→아파트외관, 금리→은행건물, 이월과세→세금서류+황금열쇠, 임대차→집열쇠+도장)\n\n' +
 
-    '[이미지 1 — 스타일B: 다크 배경 수치 비교형]\n' +
-    '스타일: dark navy/charcoal background (#1A2A4A ~ #0D1F3C), flat design infographic, two comparison panels side by side with VS badge in center\n' +
-    '구성: 좌측 패널=빨간/주황 강조색(위험/손해 측), 우측 패널=녹색 강조색(안전/이익 측), 각 패널 상단에 색상 헤더 바, 내부에 아이콘·도형·바 차트로 핵심 차이 표현\n' +
-    '배경: 미세한 격자선 패턴으로 깊이감 추가, 하단에 요약 배너\n' +
-    '실사 질감: 패널에 미세한 그라데이션, 헤더 바에 입체감 추가\n' +
-    '포스팅 핵심 오브젝트: 포스팅 내용에서 비교 대상 2가지를 추출해서 시각적 오브젝트로 표현\n' +
-    '(예: 집+화살표+세금문서, 달력+열쇠, 방패+동전, 그래프+건물, 계약서+도장)\n\n' +
-
-    '[이미지 2 — 스타일C+D 혼합: 타임라인 또는 실사질감 문서형]\n' +
+    '[이미지 2 — 스타일C+D 혼합 인포그래픽]\n' +
     '포스팅 내용이 시간·절차·단계 중심이면 스타일C(타임라인), 법령·서류·권리 중심이면 스타일D(문서+열쇠) 선택\n' +
-    '스타일C 타임라인: light purple/lavender gradient background, horizontal color gradient road/path (red→amber→green left to right), circular milestone nodes with inner icons, floating card panels above/below with colored borders, subtle grid dots in background\n' +
-    '스타일D 문서실사: dark charcoal background with diagonal pattern, realistic-looking document with paper texture gradient (cream/beige), red official stamp with circular border, golden metallic key with highlight reflection, colored info cards on right side (red/green/purple)\n' +
-    '포스팅 핵심 오브젝트: 포스팅 내용의 핵심 개념을 오브젝트로 (집 실루엣, 황금열쇠, 법원도장, 달력, 계산기, 그래프, 방패, 동전 등)\n\n' +
+    '스타일C: light purple/lavender gradient background, horizontal color gradient road (red→amber→green), circular milestone nodes, floating card panels, professional flat illustration\n' +
+    '스타일D: dark charcoal background, realistic document with paper texture (cream/beige gradient), red official stamp with circular border, golden metallic key with highlight, colored info cards\n' +
+    '금지: no people, no faces, no text, no numbers, no labels\n' +
+    '포스팅 핵심 오브젝트: 집 실루엣, 황금열쇠, 도장, 달력, 계산기, 그래프, 방패, 동전 등\n\n' +
 
     '[출력 형식 — JSON 배열만]\n' +
-    '[{"num":1,"label":"수치비교형","prompt":"dark navy charcoal background infographic, two comparison panels with colored header bars, VS badge center, left panel red/orange accent with [위험 오브젝트], right panel green accent with [안전 오브젝트], subtle grid lines, gradient panels, flat design illustration, no people, no faces, no text, no numbers, professional blog infographic style","keyword":"네이버 검색어"},' +
-    '{"num":2,"label":"타임라인또는문서형","prompt":"[스타일C 또는 D 선택] [포스팅 핵심 오브젝트 묘사], no people, no faces, no text, no numbers, no labels, realistic texture, professional illustration","keyword":"네이버 검색어"}]';
+    '[{"num":1,"label":"실사사진","prompt":"photorealistic DSLR photography, [포스팅 핵심 실물 오브젝트], natural lighting, professional composition, bright clean background, no people, no faces, no hands, no text, no letters, high quality blog thumbnail photo","keyword":"네이버 검색어"},' +
+    '{"num":2,"label":"인포그래픽","prompt":"[스타일C 또는 D 상세 묘사], [포스팅 핵심 개념 오브젝트], no people, no faces, no text, no numbers, professional illustration","keyword":"네이버 검색어"}]';
 
   try {
-    var raw = await callAI(sys, usr, 1000);
+    var raw = await callAI(sys, usr, 900);
     var parsed = parseJ(raw, '[', ']');
     if (Array.isArray(parsed) && parsed.length >= 2 && parsed[0].prompt && parsed[1].prompt) {
       imgPrompts[idx] = parsed.slice(0, 2);
@@ -2353,10 +2365,24 @@ function buildHtml(mode) {
       }
       if (isSec) { i++; continue; }
 
-      // #/##/### 소제목 → # 제거 후 볼드 네이버 HTML
+      // ### 소제목 → # 제거 후 볼드 (네이버용)
       if (/^#{1,6}\s/.test(line)) {
         var subT = line.replace(/^#{1,6}\s+/, '').trim();
         html += '<p style="'+F+'font-weight:700;font-size:16px;margin:20px 0 8px">'+esc(subT)+'</p>';
+        i++; continue;
+      }
+
+      // 단독 소제목 줄 감지 (네이버용)
+      var nxt = (i+1 < lines.length) ? lines[i+1].trim() : '';
+      var prv = (i>0) ? lines[i-1].trim() : '';
+      var isSub = line.length > 0 && line.length <= 60
+        && !line.endsWith('.') && !line.endsWith('다') && !line.endsWith('요')
+        && !line.startsWith('>') && !line.startsWith('|')
+        && !line.startsWith('\x00')
+        && (prv === '' || prv.startsWith('\x00'))
+        && nxt !== '';
+      if (isSub) {
+        html += '<p style="'+F+'font-weight:700;font-size:16px;margin:20px 0 8px">'+esc(line)+'</p>';
         i++; continue;
       }
 
