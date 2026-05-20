@@ -1967,45 +1967,43 @@ async function generateImgPromptsFromPost(idx, post) {
   }
 
   var title = post.title || t.title || '';
-  // 본문 핵심 내용 추출 (앞 800자)
   var bodySnippet = (post.body || '')
     .replace(/\[서론\]|\[본론\]|\[결론\]/g, '')
     .replace(/^#+\s/gm, '')
     .replace(/>\s/g, '')
     .replace(/\|[^\n]+/g, '')
-    .trim().slice(0, 800);
+    .trim().slice(0, 600);
 
   var sys = '블로그 이미지 기획 전문가. 반드시 JSON 배열([...])만 출력. 다른 텍스트 없음.';
   var usr =
-    '아래 블로그 포스팅을 분석하여 구체적이고 상징적인 이미지 2개의 Pollinations AI 영문 프롬프트를 만드세요.\n\n' +
+    '아래 블로그 포스팅을 분석하여 2개의 Pollinations AI 영문 이미지 프롬프트를 만드세요.\n\n' +
     '포스팅 제목: ' + title + '\n' +
     '핵심 내용:\n' + bodySnippet + '\n\n' +
 
-    '[공통 금지 사항 — 반드시 지킬 것]\n' +
+    '[공통 금지 — 반드시 준수]\n' +
     '- 실사 사람·인물·얼굴·손 절대 금지 (no people, no faces, no hands, no human figures)\n' +
-    '- 사진 스타일(photorealistic photo) 금지\n' +
-    '- 어둡거나 암울한 색감 금지 (no dark, gloomy, depressing tones)\n' +
-    '- 텍스트·글자·숫자·라벨 전체 금지 (absolutely no text, no letters, no numbers, no labels, no captions of any kind)\n' +
-    '- 추상적·모호한 이미지 금지 — 포스팅 내용을 직접 연상할 수 있어야 함\n\n' +
+    '- 텍스트·글자·숫자·라벨 전체 금지 (no text, no letters, no numbers, no labels)\n' +
+    '- 어둡거나 암울한 색감 절대 금지 (no dark, gloomy or depressing tones)\n' +
+    '- 사진 스타일(photorealistic photo) 금지\n\n' +
 
-    '[이미지 1 — 대표 썸네일]\n' +
-    '요구: 포스팅 제목의 핵심 키워드를 시각적으로 직접 표현\n' +
-    '스타일: flat design illustration 또는 isometric graphic\n' +
-    '색감: 밝고 선명한 색상 (파란색, 녹색, 금색, 주황색 계열)\n' +
-    '내용 방향: 제목의 핵심 개념(예: 취득세→세금 문서와 집 아이콘, 재건축→건물 변환 그래픽, 금리→그래프)을 구체적 오브젝트로 표현\n\n' +
+    '[이미지 1 — 비교 인포그래픽 스타일]\n' +
+    '스타일: flat design infographic, two-column comparison layout, dark navy header bar at top, colored comparison boxes in two columns, bright clean background\n' +
+    '색감: bright blue and green accent colors on light gray/white background, dark navy header\n' +
+    '내용: 포스팅의 핵심 두 가지 개념·방법·조건을 좌우 두 컬럼으로 대비하는 인포그래픽 구성. 아이콘·도형·색상 블록으로만 표현\n' +
+    '구체적 오브젝트 예시: 주택→집 아이콘, 대출→화살표+집, 세금→계산기+동전, 재건축→건물+크레인, 전세권→방패+집, 금리→그래프\n\n' +
 
-    '[이미지 2 — 본문 핵심 이미지]\n' +
-    '요구: 본문에서 가장 중요한 수치·조건·비교 내용을 시각화\n' +
-    '스타일: infographic, diagram, chart, or icon-based illustration\n' +
-    '색감: 밝고 깔끔한 색상\n' +
-    '내용 방향: 표·수치·비교(예: 취득세율 비교표→bar chart 그래픽, 권리가액 계산→계산식 다이어그램, 금리 변화→trend graph)를 구체적으로 시각화\n\n' +
+    '[이미지 2 — 저울/균형 판단형 스타일]\n' +
+    '스타일: flat design illustration, balance scale in center, two floating card panels on each side, purple and teal color theme, light lavender background\n' +
+    '색감: purple (#534AB7) scale beam and stand, teal/green accent for positive side, light lavender background\n' +
+    '내용: 포스팅의 핵심 선택지·장단점·비교를 저울 양쪽에 배치. 저울이 한쪽으로 기울어진 구도. 카드 패널에 아이콘과 도형으로만 표현\n' +
+    '구체적 오브젝트 예시: 집 실루엣, 문서 아이콘, 화살표, 체크마크, 동전 아이콘, 그래프 바, 방패 도형\n\n' +
 
-    '출력 형식 (JSON 배열만):\n' +
-    '[{"num":1,"label":"대표이미지","prompt":"구체적 영문 프롬프트 (flat illustration style, bright colors, no people, no faces, no text, no letters, no numbers, [포스팅 핵심 오브젝트 묘사])","keyword":"네이버 검색어"},' +
-    '{"num":2,"label":"핵심이미지","prompt":"구체적 영문 프롬프트 (infographic/diagram style, bright colors, no people, no text, no letters, no numbers, [수치·비교·조건 시각화 묘사])","keyword":"네이버 검색어"}]';
+    '[출력 형식 — JSON 배열만]\n' +
+    '[{"num":1,"label":"비교인포그래픽","prompt":"flat design infographic illustration, two-column comparison layout, dark navy header bar, bright colored comparison blocks in blue and green, [포스팅 핵심 오브젝트 묘사], clean white background, no people, no faces, no text, no numbers, no letters, professional blog illustration style","keyword":"네이버 검색어"},' +
+    '{"num":2,"label":"저울판단형","prompt":"flat design illustration, balance scale in center tilted to right side, purple scale beam and stand, two floating card panels with icons, light lavender background, teal green accent on heavier side, [포스팅 핵심 결론 오브젝트 묘사], no people, no faces, no text, no numbers, no letters, minimal clean illustration style","keyword":"네이버 검색어"}]';
 
   try {
-    var raw = await callAI(sys, usr, 800);
+    var raw = await callAI(sys, usr, 900);
     var parsed = parseJ(raw, '[', ']');
     if (Array.isArray(parsed) && parsed.length >= 2 && parsed[0].prompt && parsed[1].prompt) {
       imgPrompts[idx] = parsed.slice(0, 2);
