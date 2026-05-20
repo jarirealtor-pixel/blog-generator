@@ -1969,47 +1969,43 @@ async function generateImgPromptsFromPost(idx, post) {
   var title = post.title || t.title || '';
   var bodySnippet = (post.body || '')
     .replace(/\[서론\]|\[본론\]|\[결론\]/g, '')
-    .replace(/^#+\s/gm, '')
-    .replace(/>\s/g, '')
-    .replace(/\|[^\n]+/g, '')
+    .replace(/^#+\s/gm, '').replace(/>\s/g, '').replace(/\|[^\n]+/g, '')
     .trim().slice(0, 600);
 
   var sys = '블로그 이미지 기획 전문가. 반드시 JSON 배열([...])만 출력. 다른 텍스트 없음.';
   var usr =
     '아래 블로그 포스팅을 분석하여 2개의 Pollinations AI 영문 이미지 프롬프트를 만드세요.\n\n' +
-    '포스팅 제목: ' + title + '\n' +
-    '핵심 내용:\n' + bodySnippet + '\n\n' +
+    '포스팅 제목: ' + title + '\n핵심 내용:\n' + bodySnippet + '\n\n' +
 
-    '[공통 금지 — 반드시 준수]\n' +
-    '- 실사 사람·인물·얼굴·손 절대 금지 (no people, no faces, no hands, no human figures)\n' +
+    '[공통 금지 사항 — 반드시 준수]\n' +
+    '- 실사 사람·인물·얼굴·손 절대 금지 (no people, no faces, no hands)\n' +
     '- 텍스트·글자·숫자·라벨 전체 금지 (no text, no letters, no numbers, no labels)\n' +
-    '- 어둡거나 암울한 색감 절대 금지 (no dark, gloomy or depressing tones)\n' +
-    '- 사진 스타일(photorealistic photo) 금지\n\n' +
+    '- 어둡거나 암울한 색감 금지 (단, 스타일B의 다크 배경은 전문적 분위기이므로 허용)\n\n' +
 
-    '[이미지 1 — 비교 인포그래픽 스타일]\n' +
-    '스타일: flat design infographic, two-column comparison layout, dark navy header bar at top, colored comparison boxes in two columns, bright clean background\n' +
-    '색감: bright blue and green accent colors on light gray/white background, dark navy header\n' +
-    '내용: 포스팅의 핵심 두 가지 개념·방법·조건을 좌우 두 컬럼으로 대비하는 인포그래픽 구성. 아이콘·도형·색상 블록으로만 표현\n' +
-    '구체적 오브젝트 예시: 주택→집 아이콘, 대출→화살표+집, 세금→계산기+동전, 재건축→건물+크레인, 전세권→방패+집, 금리→그래프\n\n' +
+    '[이미지 1 — 스타일B: 다크 배경 수치 비교형]\n' +
+    '스타일: dark navy/charcoal background (#1A2A4A ~ #0D1F3C), flat design infographic, two comparison panels side by side with VS badge in center\n' +
+    '구성: 좌측 패널=빨간/주황 강조색(위험/손해 측), 우측 패널=녹색 강조색(안전/이익 측), 각 패널 상단에 색상 헤더 바, 내부에 아이콘·도형·바 차트로 핵심 차이 표현\n' +
+    '배경: 미세한 격자선 패턴으로 깊이감 추가, 하단에 요약 배너\n' +
+    '실사 질감: 패널에 미세한 그라데이션, 헤더 바에 입체감 추가\n' +
+    '포스팅 핵심 오브젝트: 포스팅 내용에서 비교 대상 2가지를 추출해서 시각적 오브젝트로 표현\n' +
+    '(예: 집+화살표+세금문서, 달력+열쇠, 방패+동전, 그래프+건물, 계약서+도장)\n\n' +
 
-    '[이미지 2 — 저울/균형 판단형 스타일]\n' +
-    '스타일: flat design illustration, balance scale in center, two floating card panels on each side, purple and teal color theme, light lavender background\n' +
-    '색감: purple (#534AB7) scale beam and stand, teal/green accent for positive side, light lavender background\n' +
-    '내용: 포스팅의 핵심 선택지·장단점·비교를 저울 양쪽에 배치. 저울이 한쪽으로 기울어진 구도. 카드 패널에 아이콘과 도형으로만 표현\n' +
-    '구체적 오브젝트 예시: 집 실루엣, 문서 아이콘, 화살표, 체크마크, 동전 아이콘, 그래프 바, 방패 도형\n\n' +
+    '[이미지 2 — 스타일C+D 혼합: 타임라인 또는 실사질감 문서형]\n' +
+    '포스팅 내용이 시간·절차·단계 중심이면 스타일C(타임라인), 법령·서류·권리 중심이면 스타일D(문서+열쇠) 선택\n' +
+    '스타일C 타임라인: light purple/lavender gradient background, horizontal color gradient road/path (red→amber→green left to right), circular milestone nodes with inner icons, floating card panels above/below with colored borders, subtle grid dots in background\n' +
+    '스타일D 문서실사: dark charcoal background with diagonal pattern, realistic-looking document with paper texture gradient (cream/beige), red official stamp with circular border, golden metallic key with highlight reflection, colored info cards on right side (red/green/purple)\n' +
+    '포스팅 핵심 오브젝트: 포스팅 내용의 핵심 개념을 오브젝트로 (집 실루엣, 황금열쇠, 법원도장, 달력, 계산기, 그래프, 방패, 동전 등)\n\n' +
 
     '[출력 형식 — JSON 배열만]\n' +
-    '[{"num":1,"label":"비교인포그래픽","prompt":"flat design infographic illustration, two-column comparison layout, dark navy header bar, bright colored comparison blocks in blue and green, [포스팅 핵심 오브젝트 묘사], clean white background, no people, no faces, no text, no numbers, no letters, professional blog illustration style","keyword":"네이버 검색어"},' +
-    '{"num":2,"label":"저울판단형","prompt":"flat design illustration, balance scale in center tilted to right side, purple scale beam and stand, two floating card panels with icons, light lavender background, teal green accent on heavier side, [포스팅 핵심 결론 오브젝트 묘사], no people, no faces, no text, no numbers, no letters, minimal clean illustration style","keyword":"네이버 검색어"}]';
+    '[{"num":1,"label":"수치비교형","prompt":"dark navy charcoal background infographic, two comparison panels with colored header bars, VS badge center, left panel red/orange accent with [위험 오브젝트], right panel green accent with [안전 오브젝트], subtle grid lines, gradient panels, flat design illustration, no people, no faces, no text, no numbers, professional blog infographic style","keyword":"네이버 검색어"},' +
+    '{"num":2,"label":"타임라인또는문서형","prompt":"[스타일C 또는 D 선택] [포스팅 핵심 오브젝트 묘사], no people, no faces, no text, no numbers, no labels, realistic texture, professional illustration","keyword":"네이버 검색어"}]';
 
   try {
-    var raw = await callAI(sys, usr, 900);
+    var raw = await callAI(sys, usr, 1000);
     var parsed = parseJ(raw, '[', ']');
     if (Array.isArray(parsed) && parsed.length >= 2 && parsed[0].prompt && parsed[1].prompt) {
       imgPrompts[idx] = parsed.slice(0, 2);
-    } else {
-      throw new Error('파싱 실패');
-    }
+    } else { throw new Error('파싱 실패'); }
   } catch(e) {
     console.warn('이미지 프롬프트 생성 실패:', e.message);
     imgPrompts[idx] = makeDefaultPrompts(t);
