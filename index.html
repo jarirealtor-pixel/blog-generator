@@ -461,7 +461,7 @@ a{color:var(--acc);text-decoration:none;}
     <div class="ai-card sel-g" id="card-g" onclick="pickAI('gemini')">
       <div class="ai-check" id="ck-g">✓</div>
       <div class="ai-icon">✨</div>
-      <div class="ai-name">Gemini 3.5 Flash</div>
+      <div class="ai-name">Gemini 2.5 Pro</div>
       <div class="ai-desc">감성적이고 매끄러운<br>한국어 문체</div>
       <div class="ai-pill pill-g">추천 · 나노바나나</div>
     </div>
@@ -479,7 +479,7 @@ a{color:var(--acc);text-decoration:none;}
     <input class="sp-inp" type="password" id="apiKey" placeholder="API 키를 입력하세요..." spellcheck="false" autocomplete="off">
     <div class="sp-hint" id="sp-hint">
       발급: <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a> → Get API Key<br>
-      Gemini 3.5 Flash · 무료 API 키로 사용 가능 (aistudio.google.com)
+      Gemini 2.5 Pro · 나노바나나(Google One AI Premium) 구독 필요
     </div>
     <button class="sp-btn g-btn" id="sp-go" onclick="bootApp()">🚀 시작하기</button>
     <div class="sp-skip" onclick="bootApp(true)">데모 모드로 먼저 보기</div>
@@ -854,7 +854,7 @@ var activeDomain = '부동산';  // 현재 블로그 분야
 var activeTopicType = 'trend'; // 'trend' | 'evergreen'
 var usedTopics = [];  // 사용(클릭)한 주제 제목 목록 (localStorage 연동)
 
-var GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent';
+var GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent';
 var CLAUDE_URL  = 'https://api.anthropic.com/v1/messages';
 var POLLINATIONS = 'https://image.pollinations.ai/prompt/';
 
@@ -911,7 +911,7 @@ function pickAI(engine) {
 
   if (isG) {
     document.getElementById('sp-lbl').textContent = '🔑 Gemini API 키 입력';
-    document.getElementById('sp-hint').innerHTML = '발급: <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a> → Get API Key<br>Gemini 3.5 Flash · 무료 API 키로 사용 가능 (aistudio.google.com)';
+    document.getElementById('sp-hint').innerHTML = '발급: <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a> → Get API Key<br>Gemini 2.5 Pro · 나노바나나(Google One AI Premium) 구독 필요';
     document.getElementById('sp-go').className = 'sp-btn g-btn';
   } else {
     document.getElementById('sp-lbl').textContent = '🔑 Claude API 키 입력';
@@ -1075,9 +1075,9 @@ function applyTheme() {
 
   document.getElementById('hdr-ico').className   = 'hdr-ico ' + (isG ? 'g' : 'c');
   document.getElementById('hdr-ico').textContent = isG ? '✨' : '🤖';
-  document.getElementById('hdr-s').textContent   = isG ? 'Gemini 3.5 Flash · 전문 블로그 자동 생성' : 'Claude Sonnet · 전문 블로그 자동 생성';
+  document.getElementById('hdr-s').textContent   = isG ? 'Gemini 2.5 Pro · 전문 블로그 자동 생성' : 'Claude Sonnet · 전문 블로그 자동 생성';
   document.getElementById('hdr-badge').className = 'hdr-badge ' + (isG ? 'badge-g' : 'badge-c');
-  document.getElementById('hdr-badge').textContent = isG ? '✨ Gemini 3.5 Flash' : '🤖 Claude';
+  document.getElementById('hdr-badge').textContent = isG ? '✨ Gemini 2.5 Pro' : '🤖 Claude';
   document.getElementById('dot1').className = 'dot' + (isG ? ' gd' : '');
   document.getElementById('dot2').className = 'dot' + (isG ? ' gd' : '');
   document.getElementById('fetchBtn').className = 'btn-p' + (isG ? ' gbtn' : '');
@@ -1226,34 +1226,19 @@ async function callGemini(sys, usr) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts: [{ text: sys + '\n\n' + usr }] }],
-      generationConfig: {
-        maxOutputTokens: 8192,
-        temperature: 0.7,
-        thinkingConfig: { thinkingBudget: 0 }
-      }
+      generationConfig: { maxOutputTokens: 8192, temperature: 0.7 }
     })
   });
   if (!r.ok) { var e = await r.json(); throw new Error((e.error && e.error.message) || 'Gemini 오류 ' + r.status); }
   var d = await r.json();
   if (!d.candidates || !d.candidates[0]) throw new Error('Gemini 응답 없음');
-  // 응답 파싱 - thinking 파트 제외, 모든 형태 대응
-  var candidate = d.candidates[0];
-  var content2 = candidate.content || candidate.output || {};
-  var parts = content2.parts || [];
-  
-  // 1순위: thought가 아닌 text 파트
-  var textParts = parts.filter(function(p) { return p.text && !p.thought; });
-  // 2순위: text가 있는 모든 파트
-  if (!textParts.length) textParts = parts.filter(function(p) { return p.text; });
-  // 3순위: output 필드 직접 (일부 버전)
-  if (!textParts.length && candidate.text) return candidate.text;
-  if (!textParts.length && d.text) return d.text;
-  
+  // 응답 파싱 (2.5 Pro 기준, 폴백 포함)
+  var parts = (d.candidates[0].content && d.candidates[0].content.parts) || [];
+  var textParts = parts.filter(function(p) { return p.text; });
   if (!textParts.length) {
     console.error('Gemini 응답 구조:', JSON.stringify(d).slice(0, 300));
-    throw new Error('Gemini 텍스트 응답 없음 — 응답 구조 확인 필요');
+    throw new Error('Gemini 텍스트 응답 없음');
   }
-  // 마지막 텍스트 파트 반환 (thinking 이후 실제 응답)
   return textParts[textParts.length - 1].text;
 }
 
