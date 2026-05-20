@@ -1576,7 +1576,7 @@ async function genPost(idx, force, perspective) {
         '12. 시제: 이미 시행된 정책·법령은 반드시 과거형 또는 현재완료형으로. "됩니다" 금지 → "되었습니다·되었습니다·적용됩니다" 사용.',
         '13. 마무리: 핵심 정리 1~2문장 + 비밀댓글 CTA로 마무리.',
         '14. 이모지·별표(*) 완전 금지.',
-        '15. 순수 글자수: 반드시 1500자 이상 2000자 이내로 작성. 너무 짧아도 너무 길어도 안 됨.',
+        '15. 글자수 엄수: body 순수 텍스트(공백 포함)가 반드시 1500자 이상 2000자 이하여야 함. 부족하면 각 항목 설명을 2~3문장으로 보충하고 사례·수치·부연설명을 추가해서 채워라. 절대 짧게 끝내지 말 것.',
         '16. 단락 구분: 두 번 줄바꿈(\\n\\n).',
         '17. SEO 키워드: 포스팅 제목의 핵심 키워드(2~3개 단어)를 본문에 자연스럽게 2~3회 반복해서 넣어라.',
         '18. 태그: 포스팅 내용 직접 관련 키워드만. ## 금지. 단어만 반환.'
@@ -1596,7 +1596,7 @@ async function genPost(idx, force, perspective) {
       var customPt = customPrompts[activeWorkspace] || '';
       if (customPt) sysLines.push('', '[추가 지시사항 — 반드시 적용]', customPt);
       if (wsExampleText) sysLines.push('', '[포스팅 예시 — 이 형식·문체로 작성]', wsExampleText.slice(0, 800));
-      if (isG) sysLines.push('', '[Gemini 추가 지시]', '한국어 감성이 풍부하고 독자가 끝까지 읽고 싶은 스토리텔링 문체. 서론/본론/결론 구분자 없이 자연스럽게. 항목·조건·수치는 마크다운 표로.');
+      if (isG) sysLines.push('', '[Gemini 추가 지시]', '한국어 감성이 풍부하고 독자가 끝까지 읽고 싶은 스토리텔링 문체. 서론/본론/결론 구분자 없이 자연스럽게. 항목·조건·수치는 마크다운 표로. 반드시 1500자 이상 작성할 것 — 짧으면 각 소제목 아래 설명을 2~3문장씩 더 추가해라.');
       var sys = sysLines.join('\n');
 
       var tmpl = '{' +
@@ -1614,7 +1614,7 @@ async function genPost(idx, force, perspective) {
         '카테고리: ' + t.category + ' / 유형: ' + (t.type || '정보형') + '\n\n' +
         '위 JSON 구조를 그대로 사용해서 실제 내용을 채워서 출력하세요.\n' +
         'body 구조: ' + guide + '\n' +
-        '반드시 body 필드에 2000자 이내의 실제 내용을 작성하세요. 빈 문자열 절대 금지.' + perspNote;
+        '반드시 body 필드에 1500자 이상 2000자 이하의 실제 내용을 작성하세요. 1500자 미만이면 내용 부족. 빈 문자열 절대 금지.' + perspNote;
       var raw = await callAI(sys, usr, 3000);
       post = parseJ(raw, '{', '}');
       // 유효성 검사 + body 후처리 ([서론][본론][결론] 잔재 제거)
@@ -1629,6 +1629,12 @@ async function genPost(idx, force, perspective) {
       }
       if (!post || !post.body || post.body.trim().length < 50) {
         throw new Error('AI가 내용을 생성하지 못했습니다. 잠시 후 재시도해 주세요.');
+      }
+      // 글자수 부족 시 재시도 유도 (1000자 미만)
+      if (post.body.trim().length < 1000) {
+        console.warn('글자수 부족:', post.body.trim().length, '자 → 재시도 권장');
+        // body에 부족 안내 추가
+        post.body = post.body + '\n\n(※ 내용이 부족합니다. 🔄 재생성 버튼을 눌러 다시 시도해주세요.)';
       }
       if (!post.title) post.title = topics[idx].title;
       if (!post.tags || !post.tags.length) post.tags = ['부동산','아파트','부동산투자','전세','월세','청약','절세','임대차','매매','실거주'];
