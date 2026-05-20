@@ -1968,17 +1968,19 @@ async function generateImgPromptsFromPost(idx, post) {
     '- 밝고 긍정적인 색감. 파란색·녹색·금색 계열 권장\n' +
     '- 사람·인물·얼굴 이미지 절대 금지\n' +
     '- 사진(photorealistic) 스타일 금지. 반드시 그래픽/일러스트 스타일\n' +
-    '- 텍스트·글자 없음. 배경 깔끔하게\n\n' +
+    '- 이미지에 글자를 넣을 경우 반드시 한글만 사용. 영어 텍스트 절대 금지\n' +
+    '- 글자가 없는 순수 그래픽이 가장 이상적\n\n' +
     '[이미지 2 — 본문 핵심 이미지]\n' +
     '- 포스팅의 가장 핵심 개념 1가지를 시각적으로 표현\n' +
     '- 스타일: 아이콘, 심볼, 다이어그램, 그래프, 미니멀 일러스트 중 하나\n' +
     '- 밝고 명확한 이미지. 어둡거나 암울한 색감 절대 금지\n' +
     '- 사람·인물·얼굴 이미지 절대 금지\n' +
     '- 사진 스타일 금지. 그래픽/일러스트 스타일만\n' +
-    '- 텍스트·글자 없음\n\n' +
+    '- 이미지에 글자를 넣을 경우 반드시 한글만 사용. 영어 텍스트 절대 금지\n' +
+    '- 글자가 없는 순수 그래픽이 가장 이상적\n\n' +
     '출력 형식:\n' +
-    '[{"num":1,"label":"대표이미지","prompt":"영문 프롬프트 (illustration/icon/infographic style, bright colors, no people, no text)","keyword":"네이버 검색어"},' +
-    '{"num":2,"label":"핵심이미지","prompt":"영문 프롬프트 (minimal graphic/diagram style, bright, no people, no text)","keyword":"네이버 검색어"}]';
+    '[{"num":1,"label":"대표이미지","prompt":"영문 프롬프트 (illustration/icon/infographic style, bright colors, no people, Korean text only if text needed, no English text)","keyword":"네이버 검색어"},' +
+    '{"num":2,"label":"핵심이미지","prompt":"영문 프롬프트 (minimal graphic/diagram style, bright, no people, Korean text only if text needed, no English text)","keyword":"네이버 검색어"}]';
 
   try {
     var raw = await callAI(sys, usr, 600);
@@ -2151,7 +2153,7 @@ async function genOneImage(i) {
 async function callGeminiImage(model, prompt) {
   var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + KEY;
   var body = {
-    contents: [{ parts: [{ text: prompt + ', professional photo, high quality, blog image' }] }],
+    contents: [{ parts: [{ text: prompt + ', professional illustration, high quality, blog image, Korean text only if any text, no English text' }] }],
     generationConfig: { responseModalities: ['IMAGE', 'TEXT'] }
   };
   var r = await fetch(url, {
@@ -2176,7 +2178,7 @@ async function callGeminiImage(model, prompt) {
 
 async function callPollinations(prompt) {
   var seed = Math.floor(Math.random() * 99999);
-  var encoded = encodeURIComponent(prompt + ', professional photography, high quality, 16:9 ratio');
+  var encoded = encodeURIComponent(prompt + ', professional illustration, high quality, 16:9 ratio, Korean text only if any text included, no English letters or words');
   var url = 'https://image.pollinations.ai/prompt/' + encoded + '?width=1200&height=675&model=flux&nologo=true&seed=' + seed;
   return new Promise(function(resolve, reject) {
     var img = new Image();
