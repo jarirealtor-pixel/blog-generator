@@ -1561,28 +1561,23 @@ async function genPost(idx, force, perspective) {
         '[전문 분야 특성]',
         wsDef.sysExtra,
         '',
-        '[문체 규칙]',
-        '반드시 JSON 객체({...})만 출력. 마크다운 코드블록 절대 금지.',
-        '',
-        '[문체 규칙]',
-        '1. 말투: ~입니다/~습니다 격식체, 독자에게 여러분/분들 호칭',
-        '2. 도입부: 독자가 실제로 궁금해할 질문을 자연스럽게 도입부에 녹여낼 것. 호칭(박사님 등) 사용 금지. 거주지 자기소개 금지.',
-        '3. 소제목: 마크다운 기호(** ## __ * _ ~~) 절대 금지. 별표(*) 완전 금지. 줄바꿈 후 텍스트로만.',
-        '4. 인용구: 중요하거나 강조할 내용은 줄 앞에 > 를 붙여서 표시.',
-        '   예시: > 이 조항을 모르면 수천만 원을 날릴 수 있습니다.',
-        '5. 구조: body 텍스트에 [서론] [본론] [결론] 단어 절대 포함 금지. 구분 없이 자연스럽게 이어지는 글.',
-        '6. 마무리: 박사의 최종 진단 소제목으로 끝내기 + CTA 포함',
-        '7. 수치 근거: 법령 조항, 퍼센트, 금액 등 구체적 숫자 포함',
-        '11. 태그 규칙: 포스팅 내용과 직접 관련된 구체적 키워드만. #부동산박사 #네이버부동산 절대 금지. # 기호 없이 단어만 반환(예: 전세계약, 등기부등본, 임대차보호법). ## 이중해시 절대 금지.',
-        '8. 이모지 완전 금지',
-        '9. 순수 글자수 2000자 이내',
-        '10. 단락 구분: 실제 두 번 줄바꿈(\\n\\n)',
-        '12. 표(Table) 활용 규칙:',
-        '    - 항목·조건·비교·수치 등 나열형 정보가 있으면 반드시 표로 만들어라.',
-        '    - 표 형식: | 항목 | 내용 | 형식으로 작성 (마크다운 테이블)',
-        '    - 표 앞에는 핵심 내용을 1~2문장으로 먼저 요약하고, 상세 내용은 표에 담아라.',
-        '    - 예시: 신청 자격, 금리 비교, 서류 목록, 조건 비교, 체크리스트 등은 반드시 표로.',
-        '    - 표 안에서는 이모지 금지. 표는 본문(body) 안에 직접 포함.'
+        '[문체·형식 규칙]',
+        '1. 말투: ~입니다/~습니다 격식체. 여러분/분들 호칭.',
+        '2. 도입부: 독자가 실제로 궁금해할 핵심 질문 1가지로 시작. 호칭(박사님 등) 금지.',
+        '3. 문장 길이: 한 문장은 최대 40자 이내. 길면 반드시 두 문장으로 나눠라.',
+        '4. 단락 길이: 한 단락은 최대 3문장. 그 이상이면 줄바꿈으로 단락을 나눠라.',
+        '5. 핵심만: 불필요한 수식어·중복 설명 금지. 핵심 정보만 간결하게.',
+        '6. 소제목: 마크다운 기호(** ## __ * _ ~~) 절대 금지. 텍스트로만.',
+        '7. 인용구: 핵심 포인트 1~2개만 > 로 강조. 남용 금지.',
+        '8. 구조: [서론][본론][결론] 단어 body에 절대 금지. 자연스럽게 이어지는 글.',
+        '9. 표 활용: 항목·조건·비교·수치 나열은 반드시 마크다운 표(| 항목 | 내용 |)로. 표 앞 1문장 요약 필수.',
+        '10. 수치: 법령 조항·퍼센트·금액 등 구체적 숫자 포함.',
+        '11. 마무리: 핵심 정리 1~2문장 + 비밀댓글 CTA로 마무리.',
+        '12. 이모지·별표(*) 완전 금지.',
+        '13. 순수 글자수 1500자 이내 (짧고 알차게).',
+        '14. 단락 구분: 두 번 줄바꿈(\\n\\n).',
+        '16. SEO 키워드: 포스팅 제목의 핵심 키워드(2~3개 단어)를 본문에 자연스럽게 2~3회 반복해서 넣어라. 검색 유입에 필수.',
+        '15. 태그: 포스팅 내용 직접 관련 키워드만. ## 금지. 단어만 반환.'
       ];
       // 세금/법령 관련 주제면 최신 법령 컨텍스트 추가
       if (t.category && (t.category.indexOf('세금') >= 0 || t.category.indexOf('절세') >= 0 || t.category.indexOf('대출') >= 0 || t.title.indexOf('세') >= 0 || t.title.indexOf('법') >= 0)) {
@@ -1942,162 +1937,126 @@ function renderImgTab(idx) {
 async function generateImgPromptsFromPost(idx, post) {
   var t = topics[idx] || {};
 
-  // DEMO 모드 또는 API 키 없으면 카테고리 기반 사용
   if (DEMO || !KEY) {
     imgPrompts[idx] = makeDefaultPrompts(t);
     return;
   }
 
   var title = post.title || t.title || '';
-  // 본문 앞 600자만 사용 (핵심 내용 충분, 토큰 절약)
-  var bodySnippet = (post.body || '').replace(/\[서론\]|\[본론\]|\[결론\]/g, '').trim().slice(0, 600);
 
-  var sys = '당신은 부동산 블로그 이미지 기획자입니다. 반드시 JSON 배열([...])만 출력. 다른 텍스트 없음.';
-  var usr = '아래 부동산 블로그 포스팅의 핵심 내용 2가지를 시각적으로 표현할 Pollinations AI 이미지 프롬프트를 영어로 작성해주세요.\n\n' +
-    '포스팅 제목: ' + title + '\n' +
-    '핵심 내용:\n' + bodySnippet + '\n\n' +
-    '요구사항:\n' +
-    '- 포스팅의 실제 핵심 주제를 시각적으로 직접 표현 (아파트 단지 항공사진 같은 일반적 이미지 금지)\n' +
-    '- 이미지 안에 텍스트 없음 (no text, no labels)\n' +
-    '- 사실적 사진 스타일 (photorealistic)\n' +
-    '- 한국 배경/상황\n' +
-    '- 프롬프트는 30~60 단어 영어로\n\n' +
-    '출력 형식 (JSON 배열만):\n' +
-    '[{"num":1,"label":"이미지1 한국어 설명","prompt":"영문 프롬프트","keyword":"네이버 검색어"},' +
-    '{"num":2,"label":"이미지2 한국어 설명","prompt":"영문 프롬프트","keyword":"네이버 검색어"}]';
+  var sys = '블로그 이미지 기획 전문가. 반드시 JSON 배열([...])만 출력. 다른 텍스트 없음.';
+  var usr = '아래 블로그 포스팅의 제목을 보고 이미지 2개의 Pollinations AI 영문 프롬프트를 만드세요.\n\n' +
+    '포스팅 제목: ' + title + '\n\n' +
+    '[이미지 1 — 대표 이미지 (썸네일)]\n' +
+    '- 제목에서 가장 상징적인 개념을 표현\n' +
+    '- 스타일: 깔끔한 삽화(illustration), 아이콘, 인포그래픽, 심볼, 미니멀 그래픽 중 하나\n' +
+    '- 밝고 긍정적인 색감. 파란색·녹색·금색 계열 권장\n' +
+    '- 사람·인물·얼굴 이미지 절대 금지\n' +
+    '- 사진(photorealistic) 스타일 금지. 반드시 그래픽/일러스트 스타일\n' +
+    '- 텍스트·글자 없음. 배경 깔끔하게\n\n' +
+    '[이미지 2 — 본문 핵심 이미지]\n' +
+    '- 포스팅의 가장 핵심 개념 1가지를 시각적으로 표현\n' +
+    '- 스타일: 아이콘, 심볼, 다이어그램, 그래프, 미니멀 일러스트 중 하나\n' +
+    '- 밝고 명확한 이미지. 어둡거나 암울한 색감 절대 금지\n' +
+    '- 사람·인물·얼굴 이미지 절대 금지\n' +
+    '- 사진 스타일 금지. 그래픽/일러스트 스타일만\n' +
+    '- 텍스트·글자 없음\n\n' +
+    '출력 형식:\n' +
+    '[{"num":1,"label":"대표이미지","prompt":"영문 프롬프트 (illustration/icon/infographic style, bright colors, no people, no text)","keyword":"네이버 검색어"},' +
+    '{"num":2,"label":"핵심이미지","prompt":"영문 프롬프트 (minimal graphic/diagram style, bright, no people, no text)","keyword":"네이버 검색어"}]';
 
   try {
     var raw = await callAI(sys, usr, 600);
     var parsed = parseJ(raw, '[', ']');
-
-    // 검증: 2개 이상, prompt 필드 있음
     if (Array.isArray(parsed) && parsed.length >= 2 && parsed[0].prompt && parsed[1].prompt) {
       imgPrompts[idx] = parsed.slice(0, 2);
-      console.log('✅ 본문 기반 이미지 프롬프트 생성:', parsed.map(function(p){ return p.label; }));
     } else {
-      throw new Error('프롬프트 파싱 실패');
+      throw new Error('파싱 실패');
     }
   } catch(e) {
-    console.warn('이미지 프롬프트 생성 실패, 카테고리 기반으로 대체:', e.message);
+    console.warn('이미지 프롬프트 생성 실패:', e.message);
     imgPrompts[idx] = makeDefaultPrompts(t);
   }
 }
+
 
 function makeDefaultPrompts(t) {
   var cat = (t && t.category) || '부동산';
   var title = (t && t.title) || '';
 
-  // 카테고리별 맞춤 프롬프트 (항상 아파트만 나오는 문제 해결)
+  // 카테고리별 밝고 깔끔한 일러스트 스타일 프롬프트
   var promptMap = {
     '임대차': [
-      {
-        num:1, label:'대표 이미지',
-        prompt:'Korean young couple reviewing rental lease agreement at home with real estate agent, documents on table, warm indoor lighting, professional photography, no text',
-        keyword:'전세 계약 임대차 부부'
-      },
-      {
-        num:2, label:'본문 이미지',
-        prompt:'Korean apartment building entrance and mailboxes, residential building interior lobby, soft natural lighting, no people, architectural photography, clean minimal',
-        keyword:'아파트 입구 현관 임대'
-      }
+      { num:1, label:'대표이미지',
+        prompt:'Bright minimal illustration of a house key and contract document icon, flat design, clean white background, gold and blue colors, no people, no text, professional',
+        keyword:'임대차 계약 열쇠 아이콘' },
+      { num:2, label:'핵심이미지',
+        prompt:'Simple infographic icon of a shield protecting a house, flat illustration, bright green and blue, security concept, no people, no text, clean minimal',
+        keyword:'임대차 보호 쉴드 아이콘' }
     ],
     '세금/절세': [
-      {
-        num:1, label:'대표 이미지',
-        prompt:'Korean tax documents and calculator on wooden desk with house model, financial planning concept, professional flat lay photography, no text, warm soft lighting',
-        keyword:'양도세 세금 계산기 서류'
-      },
-      {
-        num:2, label:'본문 이미지',
-        prompt:'Korean government tax office building exterior, official government architecture, clear sky, daytime, no people, professional photography',
-        keyword:'국세청 세무서 건물'
-      }
+      { num:1, label:'대표이미지',
+        prompt:'Clean minimal illustration of a calculator and coins stacked, flat icon style, bright gold and white, financial concept, no people, no text, professional',
+        keyword:'세금 절세 계산기 아이콘' },
+      { num:2, label:'핵심이미지',
+        prompt:'Simple bar graph showing tax reduction, flat design illustration, green upward arrow, bright colors, no people, no text, clean minimal infographic',
+        keyword:'세금 절감 그래프' }
     ],
     '청약': [
-      {
-        num:1, label:'대표 이미지',
-        prompt:'Korean people waiting in line at government housing application office, official counters, modern interior, candid photography style, no text, warm lighting',
-        keyword:'청약 신청 접수 줄서기'
-      },
-      {
-        num:2, label:'본문 이미지',
-        prompt:'Korean new apartment construction site with cranes and modern high-rise buildings under development, cityscape, daytime, professional photography',
-        keyword:'신축 아파트 공사현장 분양'
-      }
+      { num:1, label:'대표이미지',
+        prompt:'Bright flat illustration of a checklist clipboard with apartment building icon, blue and white, no people, no text, clean minimal design',
+        keyword:'청약 체크리스트 아이콘' },
+      { num:2, label:'핵심이미지',
+        prompt:'Simple trophy or star rating icon with apartment building, flat illustration, gold and blue colors, no people, no text, bright clean background',
+        keyword:'청약 당첨 트로피 아이콘' }
     ],
     '재개발/재건축': [
-      {
-        num:1, label:'대표 이미지',
-        prompt:'Korean old apartment building next to modern new skyscraper, urban redevelopment contrast, cityscape, aerial photography, daytime, professional',
-        keyword:'재개발 재건축 구축 신축 대조'
-      },
-      {
-        num:2, label:'본문 이미지',
-        prompt:'Korean urban redevelopment construction site with heavy machinery and cranes, city background, professional photography, daytime, no people',
-        keyword:'재개발 공사현장 크레인'
-      }
+      { num:1, label:'대표이미지',
+        prompt:'Clean flat illustration of construction crane with modern building blueprint, blue and orange, no people, no text, minimal professional icon',
+        keyword:'재건축 재개발 크레인 아이콘' },
+      { num:2, label:'핵심이미지',
+        prompt:'Simple before-after house transformation icon, flat design, bright colors, arrow indicating change, no people, no text, clean minimal',
+        keyword:'재건축 변화 비포애프터 아이콘' }
     ],
     '매매/투자': [
-      {
-        num:1, label:'대표 이미지',
-        prompt:'Korean real estate agent showing property documents to client couple in modern office, professional consultation, natural lighting, candid style',
-        keyword:'부동산 매매 상담 공인중개사'
-      },
-      {
-        num:2, label:'본문 이미지',
-        prompt:'Korean apartment complex aerial view with Han River background, Seoul skyline, daytime, wide angle photography, professional, no text',
-        keyword:'서울 한강 아파트 전경'
-      }
+      { num:1, label:'대표이미지',
+        prompt:'Bright minimal illustration of house with upward trend arrow, flat icon style, green and gold, investment concept, no people, no text, clean',
+        keyword:'부동산 투자 상승 아이콘' },
+      { num:2, label:'핵심이미지',
+        prompt:'Simple pie chart or growth graph with house icon, flat illustration, blue and green, no people, no text, bright minimal infographic',
+        keyword:'부동산 수익 그래프 아이콘' }
     ],
     '초보자': [
-      {
-        num:1, label:'대표 이미지',
-        prompt:'Korean young person holding small house model with question marks, confused but curious expression, white background, studio photography, conceptual',
-        keyword:'부동산 초보 첫 집 마련'
-      },
-      {
-        num:2, label:'본문 이미지',
-        prompt:'Korean real estate agent explaining property documents to young first-time buyer, pointing at paperwork, professional office setting, natural lighting',
-        keyword:'부동산 설명 초보 상담'
-      }
+      { num:1, label:'대표이미지',
+        prompt:'Clean flat illustration of a house with a checkmark and light bulb, bright yellow and blue, beginner guide concept, no people, no text, minimal',
+        keyword:'부동산 입문 가이드 아이콘' },
+      { num:2, label:'핵심이미지',
+        prompt:'Simple step ladder or staircase leading to house icon, flat design, bright colors, achievement concept, no people, no text, clean minimal',
+        keyword:'내집마련 단계 아이콘' }
     ]
   };
 
-  // 제목에서 특정 키워드로 더 정확한 프롬프트 선택
-  var titleLower = title.toLowerCase();
+  // 제목 키워드 기반 매칭
   var result = promptMap[cat];
-
   if (!result) {
-    // 제목 키워드 기반 매칭
-    if (title.indexOf('전세') >= 0 || title.indexOf('월세') >= 0 || title.indexOf('임대') >= 0) {
-      result = promptMap['임대차'];
-    } else if (title.indexOf('세금') >= 0 || title.indexOf('양도') >= 0 || title.indexOf('절세') >= 0 || title.indexOf('대출') >= 0) {
-      result = promptMap['세금/절세'];
-    } else if (title.indexOf('청약') >= 0 || title.indexOf('분양') >= 0) {
-      result = promptMap['청약'];
-    } else if (title.indexOf('재건축') >= 0 || title.indexOf('재개발') >= 0 || title.indexOf('리모델링') >= 0) {
-      result = promptMap['재개발/재건축'];
-    } else if (title.indexOf('초보') >= 0 || title.indexOf('처음') >= 0 || title.indexOf('입문') >= 0 || title.indexOf('임장') >= 0) {
-      result = promptMap['초보자'];
-    } else {
-      // 최후 기본값 (아파트는 배경으로만)
-      result = [
-        {
-          num:1, label:'대표 이미지',
-          prompt:'Korean residential neighborhood with mixed housing types, street level view, daytime, professional photography, natural colors, no text',
-          keyword:'한국 주거지역 부동산'
-        },
-        {
-          num:2, label:'본문 이미지',
-          prompt:'Korean real estate contract signing moment, hands with pen on official documents, house key nearby, close-up photography, warm lighting, no text',
-          keyword:'부동산 계약 서명 열쇠'
-        }
-      ];
-    }
+    if (title.indexOf('전세') >= 0 || title.indexOf('월세') >= 0 || title.indexOf('임대') >= 0) result = promptMap['임대차'];
+    else if (title.indexOf('세금') >= 0 || title.indexOf('양도') >= 0 || title.indexOf('절세') >= 0 || title.indexOf('대출') >= 0) result = promptMap['세금/절세'];
+    else if (title.indexOf('청약') >= 0 || title.indexOf('분양') >= 0) result = promptMap['청약'];
+    else if (title.indexOf('재건축') >= 0 || title.indexOf('재개발') >= 0) result = promptMap['재개발/재건축'];
+    else if (title.indexOf('초보') >= 0 || title.indexOf('처음') >= 0 || title.indexOf('입문') >= 0) result = promptMap['초보자'];
+    else result = [
+      { num:1, label:'대표이미지',
+        prompt:'Bright minimal flat illustration of Korean apartment building as simple geometric icon, blue and white, clean background, no people, no text, professional',
+        keyword:'부동산 아파트 아이콘' },
+      { num:2, label:'핵심이미지',
+        prompt:'Simple house with magnifying glass icon, flat design illustration, gold and blue colors, inspection concept, no people, no text, clean minimal',
+        keyword:'부동산 분석 돋보기 아이콘' }
+    ];
   }
 
   return result;
 }
+
 
 /* ═══════ 이미지 생성 (Gemini → Imagen 3 / Claude → Pollinations) ═══════ */
 async function genOneImage(i) {
