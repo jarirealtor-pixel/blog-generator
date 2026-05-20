@@ -461,7 +461,7 @@ a{color:var(--acc);text-decoration:none;}
     <div class="ai-card sel-g" id="card-g" onclick="pickAI('gemini')">
       <div class="ai-check" id="ck-g">✓</div>
       <div class="ai-icon">✨</div>
-      <div class="ai-name">Gemini 2.5 Pro</div>
+      <div class="ai-name">Gemini 3.5 Flash</div>
       <div class="ai-desc">감성적이고 매끄러운<br>한국어 문체</div>
       <div class="ai-pill pill-g">추천 · 나노바나나</div>
     </div>
@@ -479,7 +479,7 @@ a{color:var(--acc);text-decoration:none;}
     <input class="sp-inp" type="password" id="apiKey" placeholder="API 키를 입력하세요..." spellcheck="false" autocomplete="off">
     <div class="sp-hint" id="sp-hint">
       발급: <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a> → Get API Key<br>
-      Gemini 2.5 Pro · 나노바나나(Google One AI Premium) 구독 필요
+      Gemini 3.5 Flash · 무료 API 키로 사용 가능 (aistudio.google.com)
     </div>
     <button class="sp-btn g-btn" id="sp-go" onclick="bootApp()">🚀 시작하기</button>
     <div class="sp-skip" onclick="bootApp(true)">데모 모드로 먼저 보기</div>
@@ -854,7 +854,7 @@ var activeDomain = '부동산';  // 현재 블로그 분야
 var activeTopicType = 'trend'; // 'trend' | 'evergreen'
 var usedTopics = [];  // 사용(클릭)한 주제 제목 목록 (localStorage 연동)
 
-var GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent';
+var GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent';
 var CLAUDE_URL  = 'https://api.anthropic.com/v1/messages';
 var POLLINATIONS = 'https://image.pollinations.ai/prompt/';
 
@@ -911,7 +911,7 @@ function pickAI(engine) {
 
   if (isG) {
     document.getElementById('sp-lbl').textContent = '🔑 Gemini API 키 입력';
-    document.getElementById('sp-hint').innerHTML = '발급: <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a> → Get API Key<br>Gemini 2.5 Pro · 나노바나나(Google One AI Premium) 구독 필요';
+    document.getElementById('sp-hint').innerHTML = '발급: <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a> → Get API Key<br>Gemini 3.5 Flash · 무료 API 키로 사용 가능 (aistudio.google.com)';
     document.getElementById('sp-go').className = 'sp-btn g-btn';
   } else {
     document.getElementById('sp-lbl').textContent = '🔑 Claude API 키 입력';
@@ -1075,9 +1075,9 @@ function applyTheme() {
 
   document.getElementById('hdr-ico').className   = 'hdr-ico ' + (isG ? 'g' : 'c');
   document.getElementById('hdr-ico').textContent = isG ? '✨' : '🤖';
-  document.getElementById('hdr-s').textContent   = isG ? 'Gemini 2.5 Pro · 전문 블로그 자동 생성' : 'Claude Sonnet · 전문 블로그 자동 생성';
+  document.getElementById('hdr-s').textContent   = isG ? 'Gemini 3.5 Flash · 전문 블로그 자동 생성' : 'Claude Sonnet · 전문 블로그 자동 생성';
   document.getElementById('hdr-badge').className = 'hdr-badge ' + (isG ? 'badge-g' : 'badge-c');
-  document.getElementById('hdr-badge').textContent = isG ? '✨ Gemini 2.5 Pro' : '🤖 Claude';
+  document.getElementById('hdr-badge').textContent = isG ? '✨ Gemini 3.5 Flash' : '🤖 Claude';
   document.getElementById('dot1').className = 'dot' + (isG ? ' gd' : '');
   document.getElementById('dot2').className = 'dot' + (isG ? ' gd' : '');
   document.getElementById('fetchBtn').className = 'btn-p' + (isG ? ' gbtn' : '');
